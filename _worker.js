@@ -1,8 +1,9 @@
-// 更新日期: 2025-08-10
+// 更新日期: 2025-08-25
 // 更新内容: 
 // 1. 无论是否重定向，只要目标是 AWS S3，就自动补全 x-amz-content-sha256 和 x-amz-date
 // 2. 改进Docker镜像路径处理逻辑，支持多种格式: 如 hello-world | library/hello-world | docker.io/library/hello-world
-// 3. 解决大陆拉取第三方 Docker 镜像层失败的问题，自动递归处理所有 302/307 跳转，无论跳转到哪个域名，都由 Worker 继续反代，避免客户端直接访问被墙 CDN，从而提升拉取成功率。
+// 3. 解决大陆拉取第三方 Docker 镜像层失败的问题，自动递归处理所有 302/307 跳转，无论跳转到哪个域名，都由 Worker 继续反代，避免客户端直接访问被墙 CDN，从而提升拉取成功率
+// 4. 感谢老王，处理了暗黑模式下，输入框的颜色显示问题
 // 用户配置区域开始 =================================
 // 以下变量用于配置代理服务的白名单和安全设置，可根据需求修改。
 
@@ -142,6 +143,17 @@ const HOMEPAGE_HTML = `
     .dark-mode .result-text {
       background: #2d3748;
     }
+
+    /* 强制设置输入框样式 */
+    input[type="text"] {
+      background-color: white !important;
+      color: #111827 !important;
+    }
+    .dark-mode input[type="text"] {
+      background-color: #374151 !important;
+      color: #e5e7eb !important;
+    }
+
     @media (max-width: 640px) {
       .container {
         padding: 1rem;
@@ -206,7 +218,7 @@ const HOMEPAGE_HTML = `
           id="github-url"
           type="text"
           placeholder="请输入 GitHub 文件链接，例如：https://github.com/user/repo/releases/..."
-          class="flex-grow p-2 border border-gray-400 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+          class="flex-grow p-2 border border-gray-400 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
         >
         <button
           onclick="convertGithubUrl()"
@@ -231,7 +243,7 @@ const HOMEPAGE_HTML = `
           id="docker-image"
           type="text"
           placeholder="请输入镜像地址，例如：hello-world 或 ghcr.io/user/repo"
-          class="flex-grow p-2 border border-gray-400 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+          class="flex-grow p-2 border border-gray-400 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
         >
         <button
           onclick="convertDockerImage()"
