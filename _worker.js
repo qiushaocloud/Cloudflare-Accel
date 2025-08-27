@@ -531,16 +531,6 @@ const isAuthenticated = async (request, env) => {
 };
 
 /**
- * 检查是否是公开路由（无需认证）
- * @param {URL} url 请求URL
- * @returns {boolean} 是否是公开路由
- */
-const isPublicRoute = (url) => {
-  // 登录页面和静态资源不需要认证
-  return url.pathname === "/cf-login" || url.pathname === "/robots.txt";
-};
-
-/**
  * 处理登录请求
  * @param {Request} request 请求对象
  * @param {Object} env 环境变量
@@ -1013,23 +1003,21 @@ async function handleRequest(request, env) {
   // 记录请求信息
   console.log(`Request: ${request.method} ${path}`);
 
-  if (env.ACCESS_PASSWORD) {
-    if (url.pathname === "/cf-login") return handleLogin(request, env);
-
-    // 检查是否是登录页面或静态资源
-    if (!(await isAuthenticated(request, env)) && !isPublicRoute(url)) {
-      // 未登录且不是公开路由，重定向到登录页面
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: `${url.protocol}//${url.host}/cf-login?redirect=${encodeURIComponent(url.pathname)}`,
-        },
-      });
-    }
-  }
-
   // 首页路由
   if (path === "/" || path === "") {
+    if (env.ACCESS_PASSWORD) {
+      if (url.pathname === "/cf-login") return handleLogin(request, env);
+      // 检查是否是登录页面或静态资源
+      if (!(await isAuthenticated(request, env))) {
+        // 未登录且不是公开路由，重定向到登录页面
+        return new Response(null, {
+          status: 302,
+          headers: {
+            Location: `${url.protocol}//${url.host}/cf-login?redirect=${encodeURIComponent(url.pathname)}`,
+          },
+        });
+      }
+    }
     return new Response(HOMEPAGE_HTML, {
       status: 200,
       headers: { "Content-Type": "text/html" },
