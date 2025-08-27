@@ -1003,9 +1003,7 @@ async function handleRequest(request, env) {
   // 记录请求信息
   console.log(`Request: ${request.method} ${path}`);
 
-  // 首页路由
-  if (path === "/" || path === "") {
-    if (env.ACCESS_PASSWORD) {
+  if (env.ACCESS_PASSWORD && (url.pathname === "/" || url.pathname === "" || url.pathname === "/cf-login")) {
       if (url.pathname === "/cf-login") return handleLogin(request, env);
       // 检查是否是登录页面或静态资源
       if (!(await isAuthenticated(request, env))) {
@@ -1017,7 +1015,10 @@ async function handleRequest(request, env) {
           },
         });
       }
-    }
+  }
+  
+  // 首页路由
+  if (path === "/" || path === "") {
     return new Response(HOMEPAGE_HTML, {
       status: 200,
       headers: { "Content-Type": "text/html" },
