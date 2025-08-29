@@ -25,6 +25,7 @@ const ALLOWED_HOSTS = [
   "raw.githubusercontent.com",
   "gist.github.com",
   "gist.githubusercontent.com",
+  "release-assets.githubusercontent.com"
 ];
 
 // RESTRICT_PATHS: 控制是否限制 GitHub 和 Docker 请求的路径。
@@ -41,7 +42,7 @@ const RESTRICT_PATHS = false;
 const ALLOWED_PATHS = [
   "library", // Docker Hub 官方镜像仓库的命名空间
   "user-id-1",
-  "user-id-2",
+  "user-id-2"
 ];
 
 // 用户配置区域结束 =================================
@@ -261,7 +262,7 @@ const HOMEPAGE_HTML = `
       </div>
   
       <footer class="mt-6 text-center text-gray-500 dark:text-gray-400">
-        Powered by <a href="https://github.com/fscarmen2/Cloudflare-Accel" class="text-blue-500 hover:underline">fscarmen2/Cloudflare-Accel</a>
+        Powered by <a href="https://github.com/qiushaocloud/Cloudflare-Accel" class="text-blue-500 hover:underline">fscarmen2/Cloudflare-Accel</a>
       </footer>
     </div>
   
@@ -969,8 +970,8 @@ const handleLogin = async (request, env) => {
   // 如果是POST请求，验证密码
   if (request.method === "POST") {
     const formData = await request.formData();
-    const passwordI = formData.get("password");
-    const redirectI = formData.get("redirect") || "/";
+    const passwordI = `${formData.get("password")}`;
+    const redirectI = `${formData.get("redirect")}` || "/";
 
     // 验证密码是否正确（从环境变量获取正确密码）
     if (passwordI === env.ACCESS_PASSWORD) {
@@ -1062,7 +1063,7 @@ async function handleRequest(request, env) {
     // 处理 /https://domain.com/... 或 /http://domain.com/... 格式
     const urlObj = new URL(fullPath);
     targetDomain = urlObj.hostname;
-    targetPath = urlObj.pathname.substring(1) + urlObj.search; // 移除开头的斜杠
+    targetPath = urlObj.pathname.substring(1) + url.search; // 移除开头的斜杠
 
     // 检查是否为 Docker 请求
     isDockerRequest = [
@@ -1326,6 +1327,21 @@ async function handleRequest(request, env) {
       }
     }
 
+    // 处理 github releases/archive 重定向
+    if (response.headers.get('location') && /^(?:https?:\/\/)?github\.com\/.+?\/.+?\/(?:releases|archive)\/.*$/i.test(targetUrl)) {
+      const resHdrNew = new Headers(response.headers)
+      resHdrNew.set('location', '/' + response.headers.get('location'))
+      resHdrNew.set('access-control-expose-headers', '*')
+      resHdrNew.set('access-control-allow-origin', '*')
+      resHdrNew.delete('content-security-policy')
+      resHdrNew.delete('content-security-policy-report-only')
+      resHdrNew.delete('clear-site-data')
+      return new Response(response.body, {
+        status: response.status,
+        headers: resHdrNew,
+      })
+    }
+ 
     // 复制响应并添加 CORS 头
     const newResponse = new Response(response.body, response);
     newResponse.headers.set("Access-Control-Allow-Origin", "*");
